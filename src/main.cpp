@@ -5,20 +5,21 @@
 void setupBLE();
 void loopBLE();
 
-BLEService bleService("180D");
-BLECharacteristic bleCharacteristic("2A37", BLERead | BLEWrite | BLEWriteWithoutResponse , 20);
+BLEService myService("180D");
+BLECharacteristic myCharacteristic("2A37", BLERead | BLEWrite | BLEWriteWithoutResponse, 20);
 
 void setupBLE(){
   BLE.begin();
   BLE.setLocalName("GoTrash");
   BLE.setDeviceName("GoTrash");
-  BLE.setAdvertisedService(bleService);
+  BLE.setAdvertisedService(myService);
   
-  bleCharacteristic.canWrite();
-  bleCharacteristic.canRead();
+  myCharacteristic.canWrite();
+  myCharacteristic.canRead();
+  myCharacteristic.writeValue("Hello World");
 
-  bleService.addCharacteristic(bleCharacteristic);
-  BLE.addService(bleService);
+  myService.addCharacteristic(myCharacteristic);
+  BLE.addService(myService);
   BLE.advertise();
   Serial.println("BLE Peripheral started advertising");
 }
@@ -27,22 +28,24 @@ void loopBLE(){
   BLEDevice central = BLE.central();
   Serial.println("Looping BLE ...");
   if (central) {
-    Serial.println("Connected to central");
+    Serial.println("Connected to central. ");
     Serial.println(central.address());
-    Serial.println("------------------------");
 
-    // Check for incoming data or perform actions
-    if (bleCharacteristic.written()) {
-      const uint8_t* value = bleCharacteristic.value();
-      int length = bleCharacteristic.valueLength();
+    while (central.connected()) {
+      // Check for incoming data or perform actions
+      if (myCharacteristic.written()) {
+        const uint8_t* value = myCharacteristic.value();
+        int length = myCharacteristic.valueLength();
 
-      // Convert uint8_t array to String
-      String receivedValue = "";
-      for (int i = 0; i < length; i++) {
-        receivedValue += (char)value[i];
+        // Convert uint8_t array to String
+        String receivedValue = "";
+        for (int i = 0; i < length; i++) {
+          receivedValue += (char)value[i];
+        }
+        Serial.println("Received value: " + receivedValue);
       }
-      Serial.println("Received value: " + receivedValue);
     }
+    Serial.println("Disconnected from central.");
   }
   delay(1000); 
 }
