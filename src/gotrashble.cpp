@@ -8,6 +8,30 @@ std::map<int, unsigned long> userMap;
 
 const unsigned long TIME_LIMIT = 0.5 * 60 * 1000; // 30 Seconds
 
+int getCurrentUser(){
+  int currentUser = -1;
+  unsigned long latestTimestamp = 0;
+
+  for (const auto& user : userMap) {
+    if (user.second > latestTimestamp) {
+      latestTimestamp = user.second;
+      currentUser = user.first;
+    }
+  }
+
+  return currentUser;  
+}
+
+void noticeUser(int currentUser){
+  if (currentUser != -1) {
+    String userIdStr = String(currentUser);
+    bleCharacteristics.writeValue(userIdStr.c_str());
+    Serial.println("Sent User ID: " + userIdStr + " to BLE characteristic.");
+  } else {
+    Serial.println("No users found to send.");
+  }
+}
+
 void addUsers(int id) {
   unsigned long currentTime = millis();
 
