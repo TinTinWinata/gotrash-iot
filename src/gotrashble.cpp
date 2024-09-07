@@ -6,6 +6,7 @@ BLEService bleService("180D");
 BLECharacteristic bleCharacteristics("2A37", BLERead | BLEWrite | BLEWriteWithoutResponse, 20);
 std::map<int, unsigned long> userMap;
 
+
 const unsigned long TIME_LIMIT = 0.5 * 60 * 1000; // 30 Seconds
 
 int getCurrentUser(){
@@ -22,11 +23,13 @@ int getCurrentUser(){
   return currentUser;  
 }
 
-void noticeUser(int currentUser){
-  if (currentUser != -1) {
-    String userIdStr = String(currentUser);
-    bleCharacteristics.writeValue(userIdStr.c_str());
-    Serial.println("Sent User ID: " + userIdStr + " to BLE characteristic.");
+void noticeUser(int trashID, int userID){
+  if (trashID != -1) {
+    String trashIdStr = String(trashID);
+    String userIdStr = String(userID);
+    String combined = userIdStr + "," + trashIdStr;
+    bleCharacteristics.writeValue(combined.c_str());
+    Serial.println("Sent User ID: " + combined + " to BLE characteristic with length: " + String(combined.length()) + " the C Str is " + String(combined.c_str()));
   } else {
     Serial.println("No users found to send.");
   }
@@ -67,6 +70,12 @@ void checkExpiredUser() {
   }
 }
 
+void BLETask(void *pvParameters){
+  for(;;){
+    loopBLE();
+  }
+}
+
 void setupBLE(){
   BLE.begin();
   BLE.setLocalName("GoTrash");
@@ -80,6 +89,8 @@ void setupBLE(){
   bleService.addCharacteristic(bleCharacteristics);
   BLE.addService(bleService);
   BLE.advertise();
+
+  xTaskCreate(BLETask, "BLETask", 10000, NULL, 1, NULL);
   Serial.println("GoTrash BLE Started!");
 }
 

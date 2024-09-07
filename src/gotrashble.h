@@ -13,7 +13,7 @@ struct User {
 extern std::map<int, unsigned long> userMap;
 
 int getCurrentUser();
-void noticeUser(int currentUser);
+void noticeUser(int trashID, int userID);
 void setupBLE();
 void loopBLE();
 
