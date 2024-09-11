@@ -9,8 +9,15 @@ void setup() {
   setupBLE();
 }
 
+int trashId = 0;
 
 void loop() {
-  loopBLE();
+  delay(10000);
+  int userId = getCurrentUser();
+  if(userId != -1){
+    trashId += 1;
+    Serial.println("noticing get trash " + String(trashId));
+    noticeUser(trashId, userId);
+  }
 }
 

@@ -4,6 +4,7 @@
 // Variable List
 BLEService bleService("180D");
 BLECharacteristic bleCharacteristics("2A37", BLERead | BLEWrite | BLEWriteWithoutResponse, 20);
+BLECharacteristic notifCharacteristics("A12S", BLERead | BLEWrite | BLEWriteWithoutResponse, 20);
 std::map<int, unsigned long> userMap;
 
 
@@ -24,15 +25,11 @@ int getCurrentUser(){
 }
 
 void noticeUser(int trashID, int userID){
-  if (trashID != -1) {
     String trashIdStr = String(trashID);
     String userIdStr = String(userID);
     String combined = userIdStr + "," + trashIdStr;
-    bleCharacteristics.writeValue(combined.c_str());
-    Serial.println("Sent User ID: " + combined + " to BLE characteristic with length: " + String(combined.length()) + " the C Str is " + String(combined.c_str()));
-  } else {
-    Serial.println("No users found to send.");
-  }
+    notifCharacteristics.writeValue(combined.c_str());
+    Serial.println("Write to notification characteristics: " + combined);
 }
 
 void addUsers(int id) {
@@ -86,7 +83,12 @@ void setupBLE(){
   bleCharacteristics.canRead();
   bleCharacteristics.writeValue("");
 
+  notifCharacteristics.canWrite();
+  notifCharacteristics.canRead();
+  notifCharacteristics.writeValue("");
+
   bleService.addCharacteristic(bleCharacteristics);
+  bleService.addCharacteristic(notifCharacteristics);
   BLE.addService(bleService);
   BLE.advertise();
 
